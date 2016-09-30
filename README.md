@@ -15,7 +15,7 @@ cargo run --release -- google.com
 ```
 
 ### TODO
-- Support the full list of options in the API.
+- Add a help option.
 - Get rid of the lazy unwraps.
 - Find out a better way to handle query parameters in the curl library.
 
