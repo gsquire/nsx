@@ -5,6 +5,15 @@ Acura's awesome NSX.
 ### API Reference
 https://developers.google.com/speed/public-dns/docs/dns-over-https
 
+### Example Usage
+```sh
+cargo build --release
+
+cargo run --release -- google.com
+
+[{"name":"google.com.","type":1,"TTL":299,"data":"216.58.194.206"}]
+```
+
 ### TODO
 - Support the full list of options in the API.
 - Get rid of the lazy unwraps.
