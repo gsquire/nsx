@@ -1,12 +1,34 @@
 extern crate curl;
+extern crate docopt;
 extern crate json;
+extern crate rustc_serialize;
 
-use std::env;
 use std::str;
 
 use curl::easy::Easy;
 
+use docopt::Docopt;
+
 const GOOGLE_DNS: &'static str = "https://dns.google.com/resolve?name=";
+
+const USAGE: &'static str = "
+Usage: nsx [options] <domain>
+
+Options:
+    -d, --disable          Disable DNSSEC validation.
+    -e, --edns-subnet ARG  An optional subnet formed as IP address with a subnet mask.
+    -r, --random-pad ARG   A discarded value to pad requests with random data.
+    -t, --type ARG         DNS query type, can be a number [1, 65535] or a canonical string.
+";
+
+#[derive(Debug, RustcDecodable)]
+struct Args {
+    arg_domain: String,
+    flag_disable: bool,
+    flag_edns_subnet: Option<String>,
+    flag_random_pad: Option<String>,
+    flag_type: Option<String>,
+}
 
 // Just pull out the IP addresses for now.
 fn unpack_json(data: &[u8]) {
@@ -15,9 +37,32 @@ fn unpack_json(data: &[u8]) {
     println!("{}", j["Answer"]);
 }
 
+// Make the URL that we will use to query the API with.
+fn make_url(args: &Args) -> String {
+    let mut full_url = format!("{}{}", GOOGLE_DNS, args.arg_domain);
+
+    if args.flag_disable {
+        full_url.push_str("&cd=true");
+    }
+
+    if let Some(ref e) = args.flag_edns_subnet {
+        full_url.push_str(&format!("&edns_client_subnet={}", e));
+    }
+
+    if let Some(ref r) = args.flag_random_pad {
+        full_url.push_str(&format!("&random_padding={}", r));
+    }
+
+    if let Some(ref t) = args.flag_type {
+        full_url.push_str(&format!("&type={}", t));
+    }
+
+    full_url
+}
+
 // Call out to Google's public DNS over HTTPS endpoint.
-fn run_query(domain_name: String) {
-    let full_url = format!("{}{}", GOOGLE_DNS, domain_name);
+fn run_query(args: Args) {
+    let full_url = make_url(&args);
 
     let mut easy = Easy::new();
     easy.url(&full_url).unwrap();
@@ -30,13 +75,7 @@ fn run_query(domain_name: String) {
 }
 
 fn main() {
-    let domain_name: String;
-    if let Some(h) = env::args().nth(1) {
-        domain_name = h;
-    } else {
-        println!("must supply a domain name to query...");
-        return;
-    }
+    let args: Args = Docopt::new(USAGE).and_then(|d| d.decode()).unwrap_or_else(|e| e.exit());
 
-    run_query(domain_name);
+    run_query(args);
 }
