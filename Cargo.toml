@@ -1,0 +1,8 @@
+[package]
+name = "nsx"
+version = "0.1.0"
+authors = ["Garrett Squire <garrettsquire@gmail.com>"]
+
+[dependencies]
+curl = "0.3"
+json = "0.10"
