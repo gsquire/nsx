@@ -9,6 +9,7 @@ use curl::easy::Easy;
 
 use docopt::Docopt;
 
+const PADDING: u16 = 4;
 const GOOGLE_DNS: &'static str = "https://dns.google.com/resolve?name=";
 
 const USAGE: &'static str = "
@@ -40,7 +41,10 @@ fn unpack_json(data: &[u8]) {
     });
     let j = json::parse(response.unwrap());
     match j {
-        Ok(ans) => { println!("{}", ans["Answer"]); },
+        Ok(ans) => {
+            let pretty = json::stringify_pretty(ans["Answer"].clone(), PADDING);
+            println!("{}", pretty);
+        },
         Err(e) => { println!("error: {}", e); },
     }
 }
