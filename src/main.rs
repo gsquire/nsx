@@ -12,11 +12,14 @@ use docopt::Docopt;
 const GOOGLE_DNS: &'static str = "https://dns.google.com/resolve?name=";
 
 const USAGE: &'static str = "
-Usage: nsx [options] <domain>
+Usage:
+    nsx [options] <domain>
+    nsx (-h | --help)
 
 Options:
     -d, --disable          Disable DNSSEC validation.
     -e, --edns-subnet ARG  An optional subnet formed as IP address with a subnet mask.
+    -h, --help             Print this help message.
     -r, --random-pad ARG   A discarded value to pad requests with random data.
     -t, --type ARG         DNS query type, can be a number [1, 65535] or a canonical string.
 ";
@@ -32,9 +35,14 @@ struct Args {
 
 // Just pull out the IP addresses for now.
 fn unpack_json(data: &[u8]) {
-    let response = str::from_utf8(data).unwrap();
-    let j = json::parse(response).unwrap();
-    println!("{}", j["Answer"]);
+    let response = str::from_utf8(data).map_err(|e| {
+        println!("error converting to string: {}", e);
+    });
+    let j = json::parse(response.unwrap());
+    match j {
+        Ok(ans) => { println!("{}", ans["Answer"]); },
+        Err(e) => { println!("error: {}", e); },
+    }
 }
 
 // Make the URL that we will use to query the API with.
@@ -61,21 +69,22 @@ fn make_url(args: &Args) -> String {
 }
 
 // Call out to Google's public DNS over HTTPS endpoint.
-fn run_query(args: Args) {
+fn run_query(args: Args) -> Result<(), curl::Error> {
     let full_url = make_url(&args);
 
     let mut easy = Easy::new();
-    easy.url(&full_url).unwrap();
-    easy.write_function(|data| {
+    try!(easy.url(&full_url));
+    try!(easy.write_function(|data| {
         unpack_json(data);
         Ok(data.len())
-    }).unwrap();
+    }));
 
-    easy.perform().unwrap();
+    try!(easy.perform());
+    Ok(())
 }
 
 fn main() {
     let args: Args = Docopt::new(USAGE).and_then(|d| d.decode()).unwrap_or_else(|e| e.exit());
 
-    run_query(args);
+    let _res = run_query(args);
 }

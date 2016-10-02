@@ -15,8 +15,6 @@ cargo run --release -- google.com
 ```
 
 ### TODO
-- Add a help option.
-- Get rid of the lazy unwraps.
 - Find out a better way to handle query parameters in the curl library.
 
 ### License
