@@ -11,7 +11,14 @@ cargo build --release
 
 cargo run --release -- google.com
 
-[{"name":"google.com.","type":1,"TTL":299,"data":"216.58.194.206"}]
+[
+    {
+        "name": "google.com.",
+        "type": 1,
+        "TTL": 299,
+        "data": "172.217.4.142"
+    }
+]
 ```
 
 ### TODO
