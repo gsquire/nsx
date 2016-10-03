@@ -42,7 +42,12 @@ fn unpack_json(data: &[u8]) {
     let j = json::parse(response.unwrap());
     match j {
         Ok(ans) => {
-            let pretty = json::stringify_pretty(ans["Answer"].clone(), PADDING);
+            let resolved = ans["Answer"].clone();
+            if resolved.is_null() {
+                println!("bad query, response is:\n\n{}", response.unwrap());
+                return;
+            }
+            let pretty = json::stringify_pretty(resolved, PADDING);
             println!("{}", pretty);
         },
         Err(e) => { println!("error: {}", e); },
