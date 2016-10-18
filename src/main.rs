@@ -36,10 +36,8 @@ struct Args {
 
 // Just pull out the IP addresses for now.
 fn unpack_json(data: &[u8]) {
-    let response = str::from_utf8(data).map_err(|e| {
-        println!("error converting to string: {}", e);
-    });
-    let j = json::parse(response.unwrap());
+    let response = str::from_utf8(data);
+    let j = json::parse(response.expect("Could not create string from response"));
     match j {
         Ok(ans) => {
             let resolved = ans["Answer"].clone();
