@@ -49,8 +49,10 @@ fn unpack_json(data: &[u8]) {
             }
             let pretty = json::stringify_pretty(resolved, PADDING);
             println!("{}", pretty);
-        },
-        Err(e) => { println!("error: {}", e); },
+        }
+        Err(e) => {
+            println!("error: {}", e);
+        }
     }
 }
 
@@ -78,8 +80,8 @@ fn make_url(args: &Args) -> String {
 }
 
 // Call out to Google's public DNS over HTTPS endpoint.
-fn run_query(args: Args) -> Result<(), curl::Error> {
-    let full_url = make_url(&args);
+fn run_query(args: &Args) -> Result<(), curl::Error> {
+    let full_url = make_url(args);
 
     let mut easy = Easy::new();
     try!(easy.url(&full_url));
@@ -95,5 +97,7 @@ fn run_query(args: Args) -> Result<(), curl::Error> {
 fn main() {
     let args: Args = Docopt::new(USAGE).and_then(|d| d.decode()).unwrap_or_else(|e| e.exit());
 
-    let _res = run_query(args);
+    run_query(&args).unwrap_or_else(|err| {
+        println!("Failed to execute query with error: {}", err);
+    });
 }
